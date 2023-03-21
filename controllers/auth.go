@@ -97,3 +97,24 @@ func CurrentUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": u})
 }
+
+func UpdateUser(c *gin.Context) {
+	var input models.User
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	uid, err := token.ExtractTokenID(c)
+	if err != nil {
+		return
+	}
+
+	u, err := models.UpdateUser(uid, input)
+	if err != nil {
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": u})
+}

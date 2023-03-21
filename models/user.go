@@ -13,6 +13,8 @@ type User struct {
 	gorm.Model
 	Username string `gorm:"size:255;not null;unique" json:"username"`
 	Password string `gorm:"size:255;not null;" json:"password"`
+	Bio      string `gorm:"size:255, not null;" json:"bio"`
+	Image    string `gorm:"size:255;" json:"image"`
 }
 
 func VerifyPassword(password, hashedPassword string) error {
@@ -70,6 +72,18 @@ func GetUserByID(uid uint) (User, error) {
 
 	return u, nil
 
+}
+
+func UpdateUser(uid uint, user User) (User, error) {
+	var u User
+
+	if err := DB.First(&u, uid).Error; err != nil {
+		return u, errors.New("User not found!")
+	}
+
+	DB.Save(&user)
+
+	return user, nil
 }
 
 func (u *User) PrepareGive() {
