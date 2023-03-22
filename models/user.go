@@ -13,8 +13,9 @@ type User struct {
 	gorm.Model
 	Username string `gorm:"size:255;not null;unique" json:"username"`
 	Password string `gorm:"size:255;not null;" json:"password"`
+	Email    string `gorm:"size;255 not null;" json:"email"`
 	Bio      string `gorm:"size:255, not null;" json:"bio"`
-	Image    string `gorm:"size:255;" json:"image"`
+	Image    string `gorm:"size:255; nullable" json:"image"`
 }
 
 func VerifyPassword(password, hashedPassword string) error {
@@ -74,16 +75,19 @@ func GetUserByID(uid uint) (User, error) {
 
 }
 
-func UpdateUser(uid uint, user User) (User, error) {
-	var u User
+func (u *User) UpdateUser(uid uint, newUser User) (*User, error) {
 
 	if err := DB.First(&u, uid).Error; err != nil {
-		return u, errors.New("User not found!")
+		return nil, errors.New("User was not found")
 	}
 
-	DB.Save(&user)
+	var err error
+	if newUser.Password, err = MakePassword(u.Password); err != nil {
+		return nil, err
+	}
 
-	return user, nil
+	err = DB.Model(&u).Update(newUser).Error
+	return u, err
 }
 
 func (u *User) PrepareGive() {
@@ -100,17 +104,22 @@ func (u *User) SaveUser() (*User, error) {
 }
 
 func (u *User) BeforeSave() error {
-
-	//turn password into hash
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	password, err := MakePassword(u.Password)
 	if err != nil {
 		return err
 	}
-	u.Password = string(hashedPassword)
+	u.Password = password
 
 	//remove spaces in username
 	u.Username = html.EscapeString(strings.TrimSpace(u.Username))
 
 	return nil
+}
 
+func MakePassword(password string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hashedPassword), nil
 }

@@ -111,7 +111,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	u, err := models.UpdateUser(uid, input)
+	u, err := input.UpdateUser(uid, input)
 	if err != nil {
 		return
 	}
