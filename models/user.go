@@ -75,6 +75,16 @@ func GetUserByID(uid uint) (User, error) {
 
 }
 
+func GetUserByName(username string) (*User, error) {
+	var user User
+
+	if err := DB.First(&user, "username = ?", username).Error; err != nil {
+		return nil, errors.New("user not found!")
+	}
+
+	return &user, nil
+}
+
 func (u *User) UpdateUser(uid uint, newUser User) (*User, error) {
 
 	if err := DB.First(&u, uid).Error; err != nil {

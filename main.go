@@ -32,6 +32,7 @@ func main() {
 	protected.Use(middlewares.JwtAuthMiddleware())
 	protected.GET("/user", controllers.CurrentUser)
 	protected.PUT("/user", controllers.UpdateUser)
+	protected.GET("/profiles/:username", controllers.GetProfile)
 
 	srv := &http.Server{
 		Addr:    ":8080",

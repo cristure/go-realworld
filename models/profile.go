@@ -1,10 +1,16 @@
 package models
 
-import "errors"
+import (
+	"errors"
+	"github.com/jinzhu/gorm"
+)
 
 type Profile struct {
-	User
-	Following bool `json:"following"`
+	gorm.Model
+	Following    User
+	FollowingID  uint
+	FollowedBy   User
+	FollowedByID uint
 }
 
 func GetProfileByUserId(uid uint) (Profile, error) {
