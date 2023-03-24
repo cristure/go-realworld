@@ -58,7 +58,6 @@ func LoginAdmin(username, password string) (string, error) {
 }
 
 func GetUserByID(uid uint) (User, error) {
-
 	var u User
 
 	if uid == 0 {
@@ -86,7 +85,6 @@ func GetUserByName(username string) (*User, error) {
 }
 
 func (u *User) UpdateUser(uid uint, newUser User) (*User, error) {
-
 	if err := DB.First(&u, uid).Error; err != nil {
 		return nil, errors.New("User was not found")
 	}

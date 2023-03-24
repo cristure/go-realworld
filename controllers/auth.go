@@ -13,7 +13,6 @@ type LoginInput struct {
 }
 
 func Login(c *gin.Context) {
-
 	var input LoginInput
 
 	if err := c.ShouldBindJSON(&input); err != nil {
