@@ -94,7 +94,7 @@ func (u *User) UpdateUser(uid uint, newUser User) (*User, error) {
 		return nil, err
 	}
 
-	err = DB.Model(&u).Update(newUser).Error
+	DB.Save(newUser)
 	return u, err
 }
 

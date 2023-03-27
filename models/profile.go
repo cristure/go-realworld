@@ -2,13 +2,11 @@ package models
 
 import (
 	"errors"
-	"github.com/jinzhu/gorm"
 )
 
 type Profile struct {
-	gorm.Model
-	UserID            uint
-	IsFollowingUserID uint
+	UserID            uint `gorm:"primary_key"`
+	IsFollowingUserID uint `gorm:"primary_key"`
 }
 
 func GetProfileByUserId(uid uint) (Profile, error) {
