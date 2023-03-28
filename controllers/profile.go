@@ -62,11 +62,61 @@ func FollowUser(c *gin.Context) {
 		return
 	}
 
-	followUser, err := currentUser.FollowUser(user.ID)
+	_, err = currentUser.FollowUser(user.ID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, errors.New("Something wrong happened!"))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "You already follow this user"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "success", "data": followUser})
+	following, err := currentUser.IsFollowing(user.ID)
+	if err != nil {
+		return
+	}
+
+	pr := ProfileResponse{
+		user.Username,
+		user.Bio,
+		user.Image,
+		following,
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": pr})
+}
+
+func UnfollowUser(c *gin.Context) {
+	username := c.Param("username")
+
+	user, err := models.GetUserByName(username)
+	if err != nil {
+		c.JSON(http.StatusNotFound, errors.New("Invalid username"))
+		return
+	}
+
+	user_id, err := token.ExtractTokenID(c)
+
+	currentUser, err := models.GetUserByID(user_id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, errors.New("Invalid username"))
+		return
+	}
+
+	err = currentUser.UnfollowUser(user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	following, err := currentUser.IsFollowing(user.ID)
+	if err != nil {
+		return
+	}
+
+	pr := ProfileResponse{
+		user.Username,
+		user.Bio,
+		user.Image,
+		following,
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": pr})
 }

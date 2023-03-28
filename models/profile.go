@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"reflect"
 )
 
 type Profile struct {
@@ -9,10 +10,10 @@ type Profile struct {
 	IsFollowingUserID uint `gorm:"primary_key"`
 }
 
-func GetProfileByUserId(uid uint) (Profile, error) {
-	var p Profile
+func GetProfileByUserId(uid uint) (*Profile, error) {
+	var p *Profile
 
-	if err := DB.First(&p, uid).Error; err != nil {
+	if err := DB.First(p, uid).Error; err != nil {
 		return p, errors.New("Profile not found!")
 	}
 
@@ -28,6 +29,10 @@ func (u *User) IsFollowing(uid uint) (bool, error) {
 		return false, result.Error
 	}
 
+	if reflect.DeepEqual(p, Profile{}) {
+		return false, nil
+	}
+
 	return true, nil
 }
 
@@ -35,8 +40,18 @@ func (u *User) FollowUser(uid uint) (*Profile, error) {
 	p := Profile{UserID: u.ID, IsFollowingUserID: uid}
 
 	if err := DB.Create(&p).Error; err != nil {
-		return nil, errors.New("User not found!")
+		return nil, errors.New("You already follow this user!")
 	}
 
 	return &p, nil
+}
+
+func (u *User) UnfollowUser(uid uint) error {
+	p := Profile{UserID: u.ID, IsFollowingUserID: uid}
+
+	if err := DB.Delete(&p).Error; err != nil {
+		return errors.New("You do not follow this user!")
+	}
+
+	return nil
 }
