@@ -45,6 +45,6 @@ func ConnectDataBase() {
 		fmt.Println("We are connected to the database ", Dbdriver)
 	}
 
-	DB.AutoMigrate(&User{}, &Profile{})
+	DB.AutoMigrate(&User{}, &Profile{}, &Article{})
 	//DB.Model(&Profile{}).AddForeignKey("user_id", "users(id)", "RESTRICT", "RESTRICT")
 }
