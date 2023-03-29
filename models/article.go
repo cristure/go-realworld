@@ -10,8 +10,12 @@ type Article struct {
 	Title         string
 	Description   string
 	Body          string
-	TagList       []string
+	TagList       []Tag `gorm:"many2many:article_tags"`
 	FavoriteCount uint
-	AuthorID      uint
-	User          User `gorm:"foreignKey:AuthorID"`
+	UserID        uint
+}
+
+type Tag struct {
+	gorm.Model
+	Name string
 }

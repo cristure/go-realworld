@@ -16,6 +16,7 @@ type User struct {
 	Email    string `gorm:"size;255 not null;" json:"email"`
 	Bio      string `gorm:"size:255, not null;" json:"bio"`
 	Image    string `gorm:"size:255; nullable" json:"image"`
+	Articles []Article
 }
 
 func VerifyPassword(password, hashedPassword string) error {
