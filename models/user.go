@@ -11,12 +11,13 @@ import (
 
 type User struct {
 	gorm.Model
-	Username string `gorm:"size:255;not null;unique" json:"username"`
-	Password string `gorm:"size:255;not null;" json:"password"`
-	Email    string `gorm:"size;255 not null;" json:"email"`
-	Bio      string `gorm:"size:255, not null;" json:"bio"`
-	Image    string `gorm:"size:255; nullable" json:"image"`
-	Articles []Article
+	Username         string     `gorm:"size:255;not null;unique" json:"username"`
+	Password         string     `gorm:"size:255;not null;" json:"password"`
+	Email            string     `gorm:"size;255 not null;" json:"email"`
+	Bio              string     `gorm:"size:255, not null;" json:"bio"`
+	Image            string     `gorm:"size:255; nullable" json:"image"`
+	FavoriteArticles []*Article `gorm:"many2many:favorite_article_user"`
+	Articles         []Article
 }
 
 func VerifyPassword(password, hashedPassword string) error {
@@ -131,4 +132,15 @@ func MakePassword(password string) (string, error) {
 		return "", err
 	}
 	return string(hashedPassword), nil
+}
+
+func (u *User) FavoriteArticle(article *Article) error {
+	var user User
+	if err := DB.First(&user, u.ID).Error; err != nil {
+		return err
+	}
+
+	user.FavoriteArticles = append(user.FavoriteArticles, article)
+	DB.Save(user)
+	return nil
 }

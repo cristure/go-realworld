@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"gorm.io/gorm"
 )
 
@@ -35,4 +36,24 @@ func ListArticles() ([]Article, error) {
 	//var tag []Tag
 	err := DB.Model(&Article{}).Preload("Tags").Find(&articles).Error
 	return articles, err
+}
+
+func FindArticleBySlug(slug string) (*Article, error) {
+	var article Article
+
+	if err := DB.First(&article, "slug = ?", slug).Error; err != nil {
+		return nil, errors.New("user not found!")
+	}
+
+	return &article, nil
+}
+
+func FindTagByName(name string) (*Tag, error) {
+	var tag Tag
+
+	if err := DB.First(&tag, "name = ?", name).Error; err != nil {
+		return nil, errors.New("tag not found")
+	}
+
+	return &tag, nil
 }

@@ -37,6 +37,7 @@ func main() {
 	protected.POST("/profiles/:username/unfollow", controllers.UnfollowUser)
 	protected.POST("/articles", controllers.CreateArticle)
 	protected.GET("/articles", controllers.ListArticles)
+	protected.POST("/articles/:slug/favorite", controllers.FavoriteArticle)
 
 	srv := &http.Server{
 		Addr:    ":8080",

@@ -5,6 +5,8 @@ import (
 	"github.com/go-realworld/models"
 	"github.com/go-realworld/token"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 type ArticleInput struct {
@@ -12,6 +14,11 @@ type ArticleInput struct {
 	Description string
 	Body        string
 	TagList     []string
+}
+
+type ArticleResponse struct {
+	Article models.Article `json:"article"`
+	Author  models.Profile `json:"author"`
 }
 
 func CreateArticle(c *gin.Context) {
@@ -26,10 +33,16 @@ func CreateArticle(c *gin.Context) {
 	a.Title = input.Title
 	a.Description = input.Description
 	a.Body = input.Body
+	a.Slug = strings.ToLower(strings.Replace(input.Title, " ", "-", -1))
 
 	a.Tags = make([]*models.Tag, 0)
 	for _, t := range input.TagList {
-		a.Tags = append(a.Tags, &models.Tag{Name: t})
+		tt, err := models.FindTagByName(t)
+		if err != nil {
+			a.Tags = append(a.Tags, &models.Tag{Name: t})
+		} else {
+			a.Tags = append(a.Tags, tt)
+		}
 	}
 
 	userId, err := token.ExtractTokenID(c)
@@ -52,10 +65,31 @@ func CreateArticle(c *gin.Context) {
 
 func ListArticles(c *gin.Context) {
 	//TODO: Add query params
+	tag := c.Query("tag")
+	author := c.Query("author")
+	favorited := c.Query("favorited")
+	limit := c.Query("limit")
+	offset := c.Query("offset")
 
 	articles, err := models.ListArticles()
 	if err != nil {
 		return
+	}
+
+	if tag != "" || author != "" || favorited != "" || limit != "" || offset != "" {
+		limitInt, err := strconv.Atoi(limit)
+		offsetInt, err := strconv.Atoi(offset)
+		if err != nil {
+			return
+		}
+
+		models.FilterArticles(articles, models.FilterArticle{
+			Tag:       tag,
+			Author:    author,
+			Favorited: favorited,
+			Limit:     limitInt,
+			Offset:    offsetInt,
+		})
 	}
 
 	if err != nil {
@@ -63,4 +97,33 @@ func ListArticles(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": articles})
+}
+
+func FavoriteArticle(c *gin.Context) {
+	slug := c.Param("slug")
+
+	article, err := models.FindArticleBySlug(slug)
+	if err != nil {
+		return
+	}
+
+	user_id, err := token.ExtractTokenID(c)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	u, err := models.GetUserByID(user_id)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = u.FavoriteArticle(article)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 }
