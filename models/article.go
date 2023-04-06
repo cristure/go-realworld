@@ -31,8 +31,17 @@ func (a *Article) SaveArticle() (*Article, error) {
 	return a, nil
 }
 
-func ListArticles() ([]Article, error) {
-	var articles []Article
+func (a *Article) UpdateArticle(newArticle *Article) (*Article, error) {
+	if err := DB.First(&a).Error; err != nil {
+		return nil, errors.New("Article was not found")
+	}
+
+	DB.Save(newArticle)
+	return newArticle, nil
+}
+
+func ListArticles() ([]*Article, error) {
+	var articles []*Article
 	//var tag []Tag
 	err := DB.Model(&Article{}).Preload("Tags").Find(&articles).Error
 	return articles, err
