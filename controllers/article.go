@@ -64,26 +64,40 @@ func CreateArticle(c *gin.Context) {
 }
 
 func ListArticles(c *gin.Context) {
-	//TODO: Add query params
+
 	tag := c.Query("tag")
 	author := c.Query("author")
 	favorited := c.Query("favorited")
 	limit := c.Query("limit")
 	offset := c.Query("offset")
 
+	var result []*models.Article
 	articles, err := models.ListArticles()
 	if err != nil {
 		return
 	}
 
 	if tag != "" || author != "" || favorited != "" || limit != "" || offset != "" {
-		limitInt, err := strconv.Atoi(limit)
-		offsetInt, err := strconv.Atoi(offset)
-		if err != nil {
-			return
+		var limitInt int
+		var offsetInt int
+
+		if limit == "" {
+			limitInt = 20
+		} else {
+			if limitInt, err = strconv.Atoi(limit); err != nil {
+				return
+			}
 		}
 
-		models.FilterArticles(articles, models.FilterArticle{
+		if offset == "" {
+			offsetInt = 0
+		} else {
+			if offsetInt, err = strconv.Atoi(offset); err != nil {
+				return
+			}
+		}
+
+		result = models.FilterArticles(articles, models.FilterArticle{
 			Tag:       tag,
 			Author:    author,
 			Favorited: favorited,
@@ -96,7 +110,7 @@ func ListArticles(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "success", "data": articles})
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": result})
 }
 
 func FavoriteArticle(c *gin.Context) {
@@ -126,4 +140,15 @@ func FavoriteArticle(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	newArticle := article
+	newArticle.FavoriteCount = article.FavoriteCount + 1
+
+	updateArticle, err := article.UpdateArticle(newArticle)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": updateArticle})
 }

@@ -3,8 +3,8 @@ package models
 import (
 	"errors"
 	"github.com/go-realworld/token"
-	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 	"html"
 	"strings"
 )
@@ -79,7 +79,7 @@ func GetUserByID(uid uint) (User, error) {
 func GetUserByName(username string) (*User, error) {
 	var user User
 
-	if err := DB.First(&user, "username = ?", username).Error; err != nil {
+	if err := DB.Model(&User{}).Preload("FavoriteArticles").First(&user, "username = ?", username).Error; err != nil {
 		return nil, errors.New("user not found!")
 	}
 
@@ -113,7 +113,7 @@ func (u *User) SaveUser() (*User, error) {
 	return u, nil
 }
 
-func (u *User) BeforeSave() error {
+func (u *User) BeforeCreate(tx *gorm.DB) error {
 	password, err := MakePassword(u.Password)
 	if err != nil {
 		return err
