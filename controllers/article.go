@@ -64,7 +64,6 @@ func CreateArticle(c *gin.Context) {
 }
 
 func ListArticles(c *gin.Context) {
-
 	tag := c.Query("tag")
 	author := c.Query("author")
 	favorited := c.Query("favorited")
@@ -111,6 +110,45 @@ func ListArticles(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": result})
+}
+
+func FeedArticles(c *gin.Context) {
+	limit := c.Query("limit")
+	offset := c.Query("offset")
+	limitInt := 20
+	offsetInt := 0
+
+	user_id, err := token.ExtractTokenID(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	u, err := models.GetUserByID(user_id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	articles, err := u.FeedArticles()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if limit != "" {
+		limitInt, _ = strconv.Atoi(limit)
+	}
+
+	if offset != "" {
+		offsetInt, _ = strconv.Atoi(offset)
+	}
+
+	if len(articles) > limitInt && len(articles) > offsetInt {
+		articles = articles[offsetInt:limitInt]
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": articles})
 }
 
 func FavoriteArticle(c *gin.Context) {

@@ -27,6 +27,7 @@ func main() {
 	public.POST("/register", controllers.Register)
 	public.POST("/login", controllers.Login)
 	public.POST("/login-admin", controllers.LoginAdmin)
+	public.GET("/articles", controllers.ListArticles)
 
 	protected := router.Group("/api/admin")
 	protected.Use(middlewares.JwtAuthMiddleware())
@@ -36,7 +37,7 @@ func main() {
 	protected.POST("/profiles/:username/follow", controllers.FollowUser)
 	protected.POST("/profiles/:username/unfollow", controllers.UnfollowUser)
 	protected.POST("/articles", controllers.CreateArticle)
-	protected.GET("/articles", controllers.ListArticles)
+	protected.GET("/articles/feed", controllers.FeedArticles)
 	protected.POST("/articles/:slug/favorite", controllers.FavoriteArticle)
 
 	srv := &http.Server{

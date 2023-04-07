@@ -144,3 +144,23 @@ func (u *User) FavoriteArticle(article *Article) error {
 	DB.Save(user)
 	return nil
 }
+
+func (u *User) FeedArticles() ([]*Article, error) {
+	var user User
+	list := make([]*Article, 0)
+
+	articles, err := ListArticles()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, a := range articles {
+		if ok, _ := user.IsFollowing(a.UserID); !ok {
+			return nil, err
+		} else {
+			list = append(list, a)
+		}
+	}
+
+	return list, nil
+}
