@@ -32,12 +32,20 @@ func (a *Article) SaveArticle() (*Article, error) {
 }
 
 func (a *Article) UpdateArticle(newArticle *Article) (*Article, error) {
-	if err := DB.First(&a).Error; err != nil {
+	if err := DB.First(&a, a.ID).Error; err != nil {
 		return nil, errors.New("Article was not found")
 	}
 
 	DB.Save(newArticle)
 	return newArticle, nil
+}
+
+func (a *Article) DeleteArticle() error {
+	if err := DB.Delete(a); err != nil {
+		return err.Error
+	}
+
+	return nil
 }
 
 func ListArticles() ([]*Article, error) {

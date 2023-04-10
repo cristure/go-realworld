@@ -27,6 +27,7 @@ func main() {
 	public.POST("/register", controllers.Register)
 	public.POST("/login", controllers.Login)
 	public.POST("/login-admin", controllers.LoginAdmin)
+	public.GET("/articles/:slug", controllers.GetArticle)
 	public.GET("/articles", controllers.ListArticles)
 
 	protected := router.Group("/api/admin")
@@ -37,6 +38,9 @@ func main() {
 	protected.POST("/profiles/:username/follow", controllers.FollowUser)
 	protected.POST("/profiles/:username/unfollow", controllers.UnfollowUser)
 	protected.POST("/articles", controllers.CreateArticle)
+	protected.PUT("/articles/:slug", controllers.UpdateArticle)
+	protected.DELETE("/articles/:slug", controllers.DeleteArticle)
+
 	protected.GET("/articles/feed", controllers.FeedArticles)
 	protected.POST("/articles/:slug/favorite", controllers.FavoriteArticle)
 

@@ -16,6 +16,12 @@ type ArticleInput struct {
 	TagList     []string
 }
 
+type ArticleUpdateInput struct {
+	Title       string
+	Description string
+	Body        string
+}
+
 type ArticleResponse struct {
 	Article models.Article `json:"article"`
 	Author  models.Profile `json:"author"`
@@ -103,6 +109,8 @@ func ListArticles(c *gin.Context) {
 			Limit:     limitInt,
 			Offset:    offsetInt,
 		})
+	} else {
+		result = articles
 	}
 
 	if err != nil {
@@ -149,6 +157,73 @@ func FeedArticles(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": articles})
+}
+
+func GetArticle(c *gin.Context) {
+	slug := c.Param("slug")
+
+	article, err := models.FindArticleBySlug(slug)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": article})
+}
+
+func UpdateArticle(c *gin.Context) {
+	var input ArticleUpdateInput
+	slug := c.Param("slug")
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	article, err := models.FindArticleBySlug(slug)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+	newArticle := *article
+
+	if input.Body != "" {
+		newArticle.Body = input.Body
+	}
+
+	if input.Title != "" {
+		newArticle.Title = input.Title
+	}
+
+	if input.Description != "" {
+		newArticle.Description = input.Description
+	}
+
+	updateArticle, err := article.UpdateArticle(&newArticle)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": updateArticle})
+}
+
+func DeleteArticle(c *gin.Context) {
+	slug := c.Param("slug")
+
+	article, err := models.FindArticleBySlug(slug)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = article.DeleteArticle()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
 
 func FavoriteArticle(c *gin.Context) {
