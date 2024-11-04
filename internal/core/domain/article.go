@@ -15,10 +15,3 @@ type Article struct {
 	FavoriteCount uint
 	UserID        uint
 }
-
-// Tag is an entity that represents a tag added to an Article.
-type Tag struct {
-	gorm.Model
-	Name     string
-	Articles []*Article `gorm:"many2many:article_tags"`
-}
