@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"fmt"
-
 	"gorm.io/gorm"
 
 	"github.com/go-realworld/internal/core/domain"
@@ -22,8 +20,18 @@ func NewUser(db *gorm.DB) *User {
 func (u *User) Create(user *domain.User) error {
 	err := u.db.Create(user).Error
 	if err != nil {
-		return fmt.Errorf("failed to create user: %w", err)
+		return err
 	}
 
 	return nil
+}
+
+func (u *User) FindByUsername(username string) (*domain.User, error) {
+	var user domain.User
+	err := u.db.Find(&user, "username = ?", username).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }

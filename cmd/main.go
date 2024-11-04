@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"net/http"
 
+	apphttp "github.com/go-realworld/internal/adapter/handler/http"
 	"github.com/go-realworld/internal/adapter/storage"
 	"github.com/go-realworld/internal/adapter/storage/repository"
-	"github.com/go-realworld/internal/core/domain"
 )
 
 func main() {
@@ -15,35 +15,17 @@ func main() {
 		log.Fatal("failed to connect to database", err)
 	}
 
-	//userRepo := repository.NewUser(db)
-	//err = userRepo.Create(&domain.User{
-	//	Username: "iceblast14",
-	//	Password: "iceblast13",
-	//	Email:    "iceblast13@gmail.com",
-	//	Bio:      "someBio",
-	//})
-	//if err != nil {
-	//	panic(err)
-	//}
+	userRepository := repository.NewUser(db)
 
-	articleRepo := repository.NewArticle(db)
-	err = articleRepo.Create(&domain.Article{
-		Slug:          "whatever",
-		Title:         "whatever",
-		Description:   "whatever",
-		Body:          "whatever",
-		Tags:          nil,
-		FavoriteCount: 0,
-		UserID:        1,
-	})
-	if err != nil {
-		panic(err)
+	userHandler := apphttp.NewUserHandler(userRepository)
+	router := apphttp.NewRouter(userHandler)
+
+	server := http.Server{
+		Addr:    ":8080",
+		Handler: router,
 	}
 
-	feed, err := articleRepo.Feed(0, 0)
-	if err != nil {
-		panic(err)
+	if err = server.ListenAndServe(); err != nil {
+		log.Fatal(err)
 	}
-
-	fmt.Println(feed[])
 }
