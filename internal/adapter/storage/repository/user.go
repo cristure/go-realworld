@@ -8,7 +8,8 @@ import (
 
 // User will perform all the operations with the DB for domain.Article.
 type User struct {
-	db *gorm.DB
+	db       *gorm.DB
+	Username string
 }
 
 // NewUser will create a new repository for domain.Article.

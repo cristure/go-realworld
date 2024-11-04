@@ -1,12 +1,22 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
+	"os"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/go-realworld/internal/adapter/storage/repository"
 	"github.com/go-realworld/internal/core/domain"
 )
+
+var secret string
+
+func init() {
+	secret = os.Getenv("API_SECRET")
+}
 
 // UserHandler will hold all actions responsible for the domain.User actions.
 type UserHandler struct {
@@ -57,13 +67,30 @@ func (handler *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create a user
+	// Check user exists.
 	user, err := handler.repository.FindByUsername(loginReq.Username)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Println(user)
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginReq.Password))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	token, err := jwt.NewWithClaims(
+		jwt.SigningMethodHS256,
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(2 * time.Hour).Unix(),
+			Issuer:    "real-worl-demo-backend",
+		}).SignedString(secret)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Authorization: Token " + token))
 }
