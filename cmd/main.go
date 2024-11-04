@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/go-realworld/internal/adapter/storage"
@@ -14,6 +15,17 @@ func main() {
 		log.Fatal("failed to connect to database", err)
 	}
 
+	//userRepo := repository.NewUser(db)
+	//err = userRepo.Create(&domain.User{
+	//	Username: "iceblast14",
+	//	Password: "iceblast13",
+	//	Email:    "iceblast13@gmail.com",
+	//	Bio:      "someBio",
+	//})
+	//if err != nil {
+	//	panic(err)
+	//}
+
 	articleRepo := repository.NewArticle(db)
 	err = articleRepo.Create(&domain.Article{
 		Slug:          "whatever",
@@ -22,8 +34,16 @@ func main() {
 		Body:          "whatever",
 		Tags:          nil,
 		FavoriteCount: 0,
+		UserID:        1,
 	})
 	if err != nil {
 		panic(err)
 	}
+
+	feed, err := articleRepo.Feed(0, 0)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(feed[])
 }

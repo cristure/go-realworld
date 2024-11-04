@@ -28,6 +28,20 @@ func (a *Article) Create(article *domain.Article) error {
 	return nil
 }
 
+func (a *Article) Feed(limit, offset int) ([]*domain.Article, error) {
+	var articles []*domain.Article
+
+	err := a.db.
+		Limit(limit).
+		Offset(offset).
+		Find(&articles).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch articles: %w", err)
+	}
+
+	return articles, nil
+}
+
 // FindByID will return the article with matching ID.
 func (a *Article) FindByID(id int64) (*domain.Article, error) {
 	var article domain.Article
